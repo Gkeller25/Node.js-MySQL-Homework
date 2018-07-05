@@ -54,11 +54,11 @@ function productList() {
         .prompt([
           {
             name: "choice",
-            type: "rawlist",
+            type: "list",
             choices: function() {
               var choiceArray = [];
               for (var i = 0; i < res.length; i++) {
-                choiceArray.push(res[i].product_name);
+                choiceArray.push('ID#'+res[i].item_id+' - '+res[i].product_name+' - $'+res[i].price);
               }
               return choiceArray;
             },
@@ -131,3 +131,4 @@ function productList() {
         console.log(results);
       });
   }
+  
