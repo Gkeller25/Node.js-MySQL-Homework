@@ -58,7 +58,8 @@ function productList() {
             choices: function() {
               var choiceArray = [];
               for (var i = 0; i < res.length; i++) {
-                choiceArray.push('ID#'+res[i].item_id+' - '+res[i].product_name+' - $'+res[i].price);
+                var listItem = 'ID#'+res[i].item_id+' - '+res[i].product_name+' - $'+res[i].price;
+                choiceArray.push(listItem);
               }
               return choiceArray;
             },
@@ -76,7 +77,8 @@ function productList() {
           var chosenItem;
          
           for (var i = 0; i < res.length; i++) {
-            if (res[i].product_name === answer.choice) {
+            var listItem = 'ID#'+res[i].item_id+' - '+res[i].product_name+' - $'+res[i].price;
+            if (listItem === answer.choice) {
               chosenItem = res[i];
             }
           }
