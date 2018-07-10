@@ -36,15 +36,6 @@ var connection = mysql.createConnection({
       productList();
     });
   }
-//ask quantity to buy
-
-//these two things form the customer's order
-
-//check to see if the customer's order quantity compares to store's quantity
-
-//update store's quantity to reflect the remaining amount
-
-//upon success show customer total cost of their purchase
 
 function productList() {
     // query the database for all items being auctioned
