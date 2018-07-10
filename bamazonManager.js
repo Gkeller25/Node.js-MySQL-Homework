@@ -37,8 +37,9 @@ function menu(){
   ])
   .then(function(answer) {
       var action = answer.choice;
+console.log("__________________________________________________________");
 console.log(action);
-
+console.log("==========================================================");
 switch(action){
     case 'View Products for Sale':
     readProducts();
@@ -70,8 +71,21 @@ switch(action){
     connection.query("SELECT * FROM products", function(err, res) {
       if (err) throw err;
       // Log all results of the SELECT statement
-      console.log(res);
+      for(var i = 0; i < res.length; i++){
+      var productFancy = {
+        ID: res[i].item_id,
+        Name: res[i].product_name,
+        Department: res[i].department_name,
+        Price: "$"+res[i].price,
+        Quantity: res[i].stock_quantity
+      };
+      
+      console.log(productFancy);
+    }  
+    console.log("==========================================================");
+    menu();
     });
+    
   }
 
 
@@ -87,6 +101,8 @@ function inventoryCheck(){
     for (var i = 0; i < res.length; i++) {
       console.log(res[i].product_name);
     }
+    console.log("==========================================================");
+    menu();
 })
 }
 
@@ -107,16 +123,20 @@ function productList() {
               }
               return choiceArray;
             },
-            message: "What product's inventory should be increased?"
+            message: "What product should be ordered?"
           },
           {
             name: "qty",
             type: "input",
-            message: "Inventory to be increased by?"
+            message: "How much Inventory to order?",
+            validate: function(value){if(value > 0){
+              return true;
+            } else { console.log("  ....Input must be a number and larger than Zero");}
           }
+        }
         ])
         .then(function(answer) {
-            console.log(answer);
+            //console.log(answer);
           // get the information of the chosen item
           var chosenItem;
          
@@ -126,12 +146,12 @@ function productList() {
               chosenItem = res[i];
             }
           }
-          console.log(chosenItem);
+          //console.log(chosenItem);
           //// determine if bid was high enough
           if (chosenItem.stock_quantity >= parseInt(answer.qty)) {
           //  // bid was high enough, so update db, let the user know, and start over
           var newQty = chosenItem.stock_quantity += parseInt(answer.qty);
-          console.log(newQty);
+          //console.log(newQty);
             connection.query(
               "UPDATE products SET ? WHERE ?",
               [
@@ -145,8 +165,9 @@ function productList() {
               function(error) {
                 if (error) throw err;
               
-                console.log("Order placed successfully!\nYour total Inventory for" + chosenItem.product_name + "is..." + chosenItem.stock_quantity);
-                readProducts();
+                console.log("Order placed successfully!\nYour Updated Quantity for " + chosenItem.product_name + " is..." + chosenItem.stock_quantity);
+                console.log("==========================================================");
+                menu();
               }
             );
           } 
@@ -160,22 +181,38 @@ function productList() {
       {
         name: "product_name",
         type: "input",
-        message: "Name of Product to be added?"
+        message: "Name of Product to be added?",
+        validate: function(value){if(isNaN(value)){
+          return true;
+        } else { console.log("....Input must be a string");}
+      }
       },
       {
         name: "department_name",
         type: "input",
-        message: "Name of Department for Product?"
+        message: "Name of Department for Product?",
+        validate: function(value){if(isNaN(value)){
+          return true;
+        } else { console.log("....Input must be a string");}
+      }
       },
       {
         name:"price",
         type: "input",
-        message: "What is the Price to sell the Product at?"
+        message: "What is the Price to sell the Product at?",
+        validate: function(value){if(value > 0){
+          return true;
+        } else { console.log("....Input must be a number higher than Zero");}
+      }
       },
       {
         name: "stock_quantity",
         type: "input",
-        message: "How much of the Product to have in Inventory?"
+        message: "How much of the Product to have in Inventory?",
+        validate: function(value){if(value > 0){
+          return true;
+        } else { console.log("....Quantity must be a number higher than Zero");}
+      }
       }
 
     ])
