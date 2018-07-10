@@ -1,5 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+//var NumberPrompt = require('./number.js');
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -19,7 +20,7 @@ var connection = mysql.createConnection({
   connection.connect(function(err) {
     if (err) throw err;
     // run the start function after the connection is made to prompt the user
-    readProducts();
+    productList();
   });
 
 
@@ -32,7 +33,7 @@ var connection = mysql.createConnection({
       // Log all results of the SELECT statement
       console.log(res);
       console.log(res.length);
-     productList();
+      productList();
     });
   }
 //ask quantity to buy
@@ -68,7 +69,12 @@ function productList() {
           {
             name: "qty",
             type: "input",
-            message: "How many would you like to buy?"
+            message: "How many would you like to buy?",
+            validate: function(value){if(value > 0){
+              return true;
+            } else { console.log("  ....Input must be a number and larger than Zero");}
+          }
+        
           }
         ])
         .then(function(answer) {
@@ -101,9 +107,10 @@ function productList() {
               function(error) {
                 if (error) throw err;
                 var cost = chosenItem.price * parseInt(answer.qty);
+                console.log("==========================================================");
                 console.log("Order placed successfully!\nYour total cost is...$" + cost);
-                
-                readProducts();
+                console.log("==========================================================");
+                productList();
               }
             );
           }
@@ -112,25 +119,10 @@ function productList() {
             console.log("Insufficient quantity. Try again...");
             productList();
           }
-          //compareQTY(answer);
+          
         });
     });
   }
 
-  function compareQTY(answer) {
-    //connection.query('SELECT * FROM products WHERE stock_quantity = answer', function(err) {
-        //if (err) throw err;
-    
-    //})
-    connection.query({
-        sql: 'SELECT * FROM products WHERE stock_quantity = ?',
-        timeout: 40000, // 40s
-        values: [answer.choice]
-      }, function (error, results, fields) {
-        // error will be an Error if one occurred during the query
-        // results will contain the results of the query
-        // fields will contain information about the returned results fields (if any)
-        console.log(results);
-      });
-  }
+  
   

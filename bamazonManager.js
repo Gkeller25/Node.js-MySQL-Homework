@@ -146,13 +146,10 @@ function productList() {
                 if (error) throw err;
               
                 console.log("Order placed successfully!\nYour total Inventory for" + chosenItem.product_name + "is..." + chosenItem.stock_quantity);
-                
                 readProducts();
               }
             );
-          }
-          
-        
+          } 
         });
     });
   }
@@ -212,27 +209,16 @@ inquirer.prompt([
       "INSERT INTO products SET ?",  
        {
           product_name: newName,
-      
-        
           department_name: departmentName,
-       
-        
-          price: productPrice,
-        
-        
+          price: productPrice,       
           stock_quantity: stockQuantity
         },
         function(err, res) {
           console.log(res.affectedRows + " product inserted!\n");
-          // Call updateProduct AFTER the INSERT completes
-        menu();
+          menu();
         }
-    ); 
-  
+    );   
   }
-    //connection.query('SELECT * FROM products WHERE stock_quantity = answer', function(err) {
-        //if (err) throw err;
     
-    //})
     
    
