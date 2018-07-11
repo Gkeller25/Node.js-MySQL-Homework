@@ -85,6 +85,7 @@ function productList() {
           //  // bid was high enough, so update db, let the user know, and start over
           var newQty = chosenItem.stock_quantity -= parseInt(answer.qty);
           console.log(newQty);
+          var dept = chosenItem.department_name;
             connection.query(
               "UPDATE products SET ? WHERE ?",
               [
@@ -101,7 +102,9 @@ function productList() {
                 console.log("==========================================================");
                 console.log("Order placed successfully!\nYour total cost is...$" + cost);
                 console.log("==========================================================");
+                salesLog(cost, dept);
                 productList();
+                
               }
             );
           }
@@ -115,5 +118,45 @@ function productList() {
     });
   }
 
-  
-  
+  function salesLog(cost, dept){
+    connection.query("SELECT * FROM departments WHERE department_name = ?", [dept], function(err, res) {
+      if (err) throw err;
+      console.log(res[0]);
+
+    
+    
+    var sales = res[0].product_sales;
+    console.log(sales);
+    var newSales = sales + cost;
+    connection.query(
+      "UPDATE departments SET ? WHERE ?",
+      [
+       {
+        product_sales: newSales
+        },
+        {
+         department_name: dept
+        }
+      ],
+      function(error) {
+        if (error) throw error;
+     
+        
+        
+        readDepartments();
+
+      }
+  );
+})
+  }
+  function readDepartments() {
+    console.log("Selecting all departments...\n");
+    //from mysql module package
+    connection.query("SELECT * FROM departments", function(err, res) {
+      if (err) throw err;
+      // Log all results of the SELECT statement
+      console.log(res);
+      console.log(res.length);
+      
+    });
+  }
