@@ -53,14 +53,28 @@ switch(action){
     
 }
   })}
-
+ 
 
   function viewSales() {
-  connection.query("SELECT *, product_sales -over_head_costs AS total_profit FROM departments ", function(err, res) {
+  connection.query('SELECT department_id AS ID, department_name AS Department, over_head_costs AS Overhead, product_sales AS Sales, product_sales -over_head_costs AS "Total Profit" FROM departments ', function(err, res) {
     if (err) throw err;
     // Log all results of the SELECT statement
-    console.log(res);
+var tableHeaders = Object.keys(res[0]);
    
+//need to make it more than 2 columns
+// need to separate the key from the value
+   var table = new Table({
+    head: tableHeaders,
+    colWidths: [5, 15, 10, 8, 15]
+
+});
+
+   for(var j = 0; j < res.length; j++){
+
+   table.push(
+       Object.values(res[j])
+   );}
+   console.log(table.toString());
   })
 }
 
@@ -95,21 +109,12 @@ function addDepartment(){
           }
           },
           {
-            name:"price",
+            name:"over_head_costs",
             type: "input",
             message: "What is the Department's Overhead Cost?",
             validate: function(value){if(value > 0){
               return true;
             } else { console.log("....Input must be a number higher than Zero");}
-          }
-          },
-          {
-            name: "stock_quantity",
-            type: "input",
-            message: "How much of the Product to have in Inventory?",
-            validate: function(value){if(value > 0){
-              return true;
-            } else { console.log("....Quantity must be a number higher than Zero");}
           }
           }
     
@@ -120,16 +125,32 @@ function addDepartment(){
       {
         name: "finalized",
         type: "confirm",
-        message: "Is this the Product you wish to Add?"
+        message: "Is this the Department you wish to Create?"
       }
     ]).then(function(answer) {
-      console.log(answer.finalized);
       if(answer.finalized === true){
-        updateProducts(result);
-        console.log("working");
+        updateDepartments(result);
       } else {
-        newProducts();
+        addDepartment();
       }
     })
         })
+      }
+
+      function updateDepartments(result){
+        
+        var departmentName = result.department_name;
+        var overheadCosts = result.over_head_costs;
+
+        connection.query(
+          "INSERT INTO departments SET ?",  
+           {
+              department_name: departmentName,
+              over_head_costs: overheadCosts       
+            },
+            function(err, res) {
+              console.log(res.affectedRows + " department created!\n");
+              menu();
+            }
+        );   
       }

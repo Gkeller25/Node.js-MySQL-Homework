@@ -225,10 +225,8 @@ inquirer.prompt([
     message: "Is this the Product you wish to Add?"
   }
 ]).then(function(answer) {
-  console.log(answer.finalized);
   if(answer.finalized === true){
     updateProducts(result);
-    console.log("working");
   } else {
     newProducts();
   }
@@ -251,7 +249,7 @@ inquirer.prompt([
           stock_quantity: stockQuantity
         },
         function(err, res) {
-          console.log(res.affectedRows + " product inserted!\n");
+          console.log(res.affectedRows + " product added!\n");
           menu();
         }
     );   
