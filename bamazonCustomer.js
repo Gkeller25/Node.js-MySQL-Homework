@@ -1,6 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
-//var NumberPrompt = require('./number.js');
+
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -23,24 +23,13 @@ var connection = mysql.createConnection({
     productList();
   });
 
-
-
-  function readProducts() {
-    console.log("Selecting all products...\n");
-    //from mysql module package
-    connection.query("SELECT * FROM products", function(err, res) {
-      if (err) throw err;
-      // Log all results of the SELECT statement
-      console.log(res);
-      console.log(res.length);
-      productList();
-    });
-  }
-
+  
 function productList() {
     // query the database for all items being auctioned
     connection.query("SELECT * FROM products", function(err, res) {
       if (err) throw err;
+     
+  
       // once you have the items, prompt the user for which they'd like to bid on
       inquirer
         .prompt([
@@ -53,9 +42,11 @@ function productList() {
                 var listItem = 'ID#'+res[i].item_id+' - '+res[i].product_name+' - $'+res[i].price;
                 choiceArray.push(listItem);
               }
+              choiceArray.push(new inquirer.Separator());
               return choiceArray;
             },
             message: "What product would you like to buy?"
+          
           },
           {
             name: "qty",
@@ -66,10 +57,18 @@ function productList() {
             } else { console.log("  ....Input must be a number and larger than Zero");}
           }
         
+          },
+          {
+            name: "finalized",
+            type: "confirm",
+            message: "Is this the Product you wish to Buy?"
+            
           }
         ])
         .then(function(answer) {
-            console.log(answer);
+
+        console.log("==========================================================");
+     if(answer.finalized === true)  { 
           // get the information of the chosen item
           var chosenItem;
          
@@ -79,12 +78,12 @@ function productList() {
               chosenItem = res[i];
             }
           }
-          console.log(chosenItem);
+   
           //// determine if bid was high enough
           if (chosenItem.stock_quantity >= parseInt(answer.qty)) {
           //  // bid was high enough, so update db, let the user know, and start over
           var newQty = chosenItem.stock_quantity -= parseInt(answer.qty);
-          console.log(newQty);
+          
           var dept = chosenItem.department_name;
             connection.query(
               "UPDATE products SET ? WHERE ?",
@@ -113,20 +112,22 @@ function productList() {
             console.log("Insufficient quantity. Try again...");
             productList();
           }
+        } else {
           
+          productList();
+        }
         });
+
+
+
     });
   }
 
   function salesLog(cost, dept){
     connection.query("SELECT * FROM departments WHERE department_name = ?", [dept], function(err, res) {
       if (err) throw err;
-      console.log(res[0]);
-
-    
-    
     var sales = res[0].product_sales;
-    console.log(sales);
+    
     var newSales = sales + cost;
     connection.query(
       "UPDATE departments SET ? WHERE ?",
@@ -139,24 +140,10 @@ function productList() {
         }
       ],
       function(error) {
-        if (error) throw error;
-     
+        if (error) throw error;  
         
-        
-        readDepartments();
-
       }
   );
 })
   }
-  function readDepartments() {
-    console.log("Selecting all departments...\n");
-    //from mysql module package
-    connection.query("SELECT * FROM departments", function(err, res) {
-      if (err) throw err;
-      // Log all results of the SELECT statement
-      console.log(res);
-      console.log(res.length);
-      
-    });
-  }
+  
