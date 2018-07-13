@@ -28,7 +28,7 @@ var connection = mysql.createConnection({
 
 function menu(){
     
-
+    console.log("Creating Options...\n");
   inquirer
   .prompt([
     {
@@ -40,7 +40,7 @@ function menu(){
   ])
   .then(function(answer) {
       var action = answer.choice;
-console.log("__________________________________________________________");
+      console.log("==========================================================");
 console.log(action);
 console.log("==========================================================");
 switch(action){
@@ -56,13 +56,17 @@ switch(action){
  
 
   function viewSales() {
-  connection.query('SELECT department_id AS ID, department_name AS Department, over_head_costs AS Overhead, product_sales AS Sales, product_sales -over_head_costs AS "Total Profit" FROM departments ', function(err, res) {
+    console.log("Selecting all Departments...\n");
+  connection.query('SELECT department_id AS ID, department_name AS Department, over_head_costs AS Overhead, product_sales AS Sales, product_sales -over_head_costs AS "Total Profit" FROM departments', function(err, res) {
     if (err) throw err;
     // Log all results of the SELECT statement
+    console.log("==========================================================");
+departmentTable(res);
+  })
+  function departmentTable(res){  
+    console.log("Building Table...\n");
 var tableHeaders = Object.keys(res[0]);
    
-//need to make it more than 2 columns
-// need to separate the key from the value
    var table = new Table({
     head: tableHeaders,
     colWidths: [5, 15, 10, 8, 15]
@@ -75,7 +79,10 @@ var tableHeaders = Object.keys(res[0]);
        Object.values(res[j])
    );}
    console.log(table.toString());
-  })
+   console.log("==========================================================\n");
+  }
+  //console.log("==========================================================");
+  menu();
 }
 
 //  function viewSales() {
@@ -104,7 +111,12 @@ function addDepartment(){
             type: "input",
             message: "Name of Department to be added?",
             validate: function(value){if(isNaN(value)){
-              return true;
+                var letter = /^[A-Z]/.test(value);
+                if(letter === true){
+              return true;}
+              else {
+                  console.log(".....first letter must be Capitalized!");
+              }
             } else { console.log("....Input must be a string");}
           }
           },

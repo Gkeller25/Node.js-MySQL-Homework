@@ -1,5 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
+var Table = require('cli-table');
 
 var connection = mysql.createConnection({
     host: "localhost",
@@ -37,7 +38,7 @@ function menu(){
   ])
   .then(function(answer) {
       var action = answer.choice;
-console.log("__________________________________________________________");
+console.log("==========================================================");
 console.log(action);
 console.log("==========================================================");
 switch(action){
@@ -68,39 +69,55 @@ switch(action){
   function readProducts() {
     console.log("Selecting all products...\n");
     //from mysql module package
-    connection.query("SELECT * FROM products", function(err, res) {
+    connection.query('SELECT item_id AS ID, product_name AS Product, department_name AS Department, price AS Price, stock_quantity AS Quantity FROM products ', function(err, res) {
       if (err) throw err;
       // Log all results of the SELECT statement
-      for(var i = 0; i < res.length; i++){
-      var productFancy = {
-        ID: res[i].item_id,
-        Name: res[i].product_name,
-        Department: res[i].department_name,
-        Price: "$"+res[i].price,
-        Quantity: res[i].stock_quantity
-      };
       
-      console.log(productFancy);
-    }  
+     
+      
+      //console.log(productFancy);
+      var tableHeaders = Object.keys(res[0]);
+   
+   var table = new Table({
+    head: tableHeaders,
+    colWidths: [5, 15, 15, 8, 10]
+
+});
+
+   for(var j = 0; j < res.length; j++){
+
+   table.push(
+       Object.values(res[j])
+   );}
+   console.log(table.toString());
+     
     console.log("==========================================================");
     menu();
     });
     
   }
 
-
-
-
 //check store's quantity
 
-
-
 function inventoryCheck(){
-  var query = "SELECT product_name FROM products WHERE stock_quantity <= 5";
+  var query = "SELECT item_id AS ID, product_name AS Product, department_name AS Department, stock_quantity AS Quantity  FROM products WHERE stock_quantity <= 5";
   connection.query(query, function(err, res) {
-    for (var i = 0; i < res.length; i++) {
-      console.log(res[i].product_name);
-    }
+   
+    var tableHeaders = Object.keys(res[0]);
+   
+    var table = new Table({
+     head: tableHeaders,
+     colWidths: [5, 15, 15, 10]
+ 
+ });
+ 
+    for(var j = 0; j < res.length; j++){
+ 
+    table.push(
+        Object.values(res[j])
+    );}
+    console.log(table.toString());
+    
     console.log("==========================================================");
     menu();
 })
@@ -119,8 +136,9 @@ function productList() {
             choices: function() {
               var choiceArray = [];
               for (var i = 0; i < res.length; i++) {
-                choiceArray.push(res[i].product_name+' - '+res[i].stock_quantity);
+                choiceArray.push("ID: " + res[i].item_id + ' - ' + res[i].product_name);
               }
+              choiceArray.push(new inquirer.Separator());
               return choiceArray;
             },
             message: "What product should be ordered?"
@@ -136,22 +154,22 @@ function productList() {
         }
         ])
         .then(function(answer) {
-            //console.log(answer);
+    
           // get the information of the chosen item
           var chosenItem;
          
           for (var i = 0; i < res.length; i++) {
-            var itemQty = res[i].product_name+' - '+res[i].stock_quantity;
+            var itemQty = "ID: " + res[i].item_id + ' - ' + res[i].product_name;
             if (itemQty === answer.choice) {
               chosenItem = res[i];
             }
           }
-          //console.log(chosenItem);
+         
           //// determine if bid was high enough
           if (chosenItem.stock_quantity >= parseInt(answer.qty)) {
           //  // bid was high enough, so update db, let the user know, and start over
           var newQty = chosenItem.stock_quantity += parseInt(answer.qty);
-          //console.log(newQty);
+         
             connection.query(
               "UPDATE products SET ? WHERE ?",
               [
@@ -176,6 +194,16 @@ function productList() {
   }
 
   function newProducts(){
+    var query = "SELECT department_name FROM products";
+  connection.query(query, function(err, res) {
+    var depts = [];
+    for(var i = 0; i < res.length; i++){
+      depts.push(Object.values(res[i]).join());
+    }
+    var deptsUnique = depts.filter(function(dep, j, arr){
+      return arr.indexOf(dep) === j; 
+    })
+    console.log(deptsUnique);
     inquirer
     .prompt([
       {
@@ -187,12 +215,19 @@ function productList() {
         } else { console.log("....Input must be a string");}
       }
       },
+      
       {
         name: "department_name",
-        type: "input",
+        type: "list",
         message: "Name of Department for Product?",
+        choices: deptsUnique,
         validate: function(value){if(isNaN(value)){
+          if(depts.includes(value, 0)){
+          console.log(value);
           return true;
+        } else {
+console.log(" Department needs to be added by Supervisor");
+          }
         } else { console.log("....Input must be a string");}
       }
       },
@@ -200,7 +235,7 @@ function productList() {
         name:"price",
         type: "input",
         message: "What is the Price to sell the Product at?",
-        validate: function(value){if(value > 0){
+        validate: function(value){if(parseInt(value) > 0){
           return true;
         } else { console.log("....Input must be a number higher than Zero");}
       }
@@ -208,7 +243,7 @@ function productList() {
       {
         name: "stock_quantity",
         type: "input",
-        message: "How much of the Product to have in Inventory?",
+        message: "Quantity of Product to keep in inventory?",
         validate: function(value){if(value > 0){
           return true;
         } else { console.log("....Quantity must be a number higher than Zero");}
@@ -230,6 +265,7 @@ inquirer.prompt([
   } else {
     newProducts();
   }
+})
 })
     })
   }
