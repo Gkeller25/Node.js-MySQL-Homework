@@ -20,13 +20,11 @@ var connection = mysql.createConnection({
   connection.connect(function(err) {
     if (err) throw err;
     // run the start function after the connection is made to prompt the user
-    //readProducts();
     menu();
   });
 
 function menu(){
     
-
   inquirer
   .prompt([
     {
@@ -38,98 +36,80 @@ function menu(){
   ])
   .then(function(answer) {
       var action = answer.choice;
-console.log("==========================================================");
-console.log(action);
-console.log("==========================================================");
-switch(action){
-    case 'View Products for Sale':
-    readProducts();
-    break;
-    case 'View Low Inventory':
-    inventoryCheck();
-//needs to filter out and show only products with a qty of 5 or less
-    break;
-    case 'Add to Inventory':
-    productList()
-//display a prompt to add more of any current items in the store(order more products)
-    break;
-    case 'Add New Product':
-    newProducts()
-//allow the manager to add a completely new product
+      console.log("==========================================================");
+      console.log(action);
+      console.log("==========================================================");
+      switch(action){
+          case 'View Products for Sale':
+            readProducts();
+          break;
+
+          case 'View Low Inventory':
+            inventoryCheck();
+          break;
+
+          case 'Add to Inventory':
+            productList()
+          break;
+
+          case 'Add New Product':
+            newProducts()
+      }
+  })
 }
-  })}
 
-
-
-
-
-
-
-
+  //View all Products available and Print to Table
   function readProducts() {
     console.log("Selecting all products...\n");
-    //from mysql module package
-    connection.query('SELECT item_id AS ID, product_name AS Product, department_name AS Department, price AS Price, stock_quantity AS Quantity FROM products ', function(err, res) {
+    connection.query('SELECT item_id AS ID, product_name AS Product, department_name AS Department, price AS Price, stock_quantity AS Quantity FROM products ', 
+    function(err, res) {
       if (err) throw err;
-      // Log all results of the SELECT statement
-      
-     
-      
-      //console.log(productFancy);
+
       var tableHeaders = Object.keys(res[0]);
    
-   var table = new Table({
-    head: tableHeaders,
-    colWidths: [5, 15, 15, 8, 10]
+      var table = new Table({
+        head: tableHeaders,
+        colWidths: [5, 15, 15, 8, 10]
+      });
 
-});
+      for(var j = 0; j < res.length; j++){
 
-   for(var j = 0; j < res.length; j++){
-
-   table.push(
-       Object.values(res[j])
-   );}
-   console.log(table.toString());
+      table.push(Object.values(res[j]));
+      }
+      console.log(table.toString());
      
-    console.log("==========================================================");
-    menu();
-    });
-    
+      console.log("==========================================================");
+      menu();
+    });  
   }
 
 //check store's quantity
-
 function inventoryCheck(){
   var query = "SELECT item_id AS ID, product_name AS Product, department_name AS Department, stock_quantity AS Quantity  FROM products WHERE stock_quantity <= 5";
   connection.query(query, function(err, res) {
-   
     var tableHeaders = Object.keys(res[0]);
-   
     var table = new Table({
-     head: tableHeaders,
-     colWidths: [5, 15, 15, 10]
- 
- });
+      head: tableHeaders,
+      colWidths: [5, 15, 15, 10] 
+    });
  
     for(var j = 0; j < res.length; j++){
- 
-    table.push(
-        Object.values(res[j])
-    );}
+      table.push(Object.values(res[j]));
+      }
     console.log(table.toString());
     
     console.log("==========================================================");
     menu();
-})
+  })
 }
 
-function productList() {
+
+    function productList() {
     // query the database for all items being auctioned
-    connection.query("SELECT * FROM products", function(err, res) {
-      if (err) throw err;
-      // once you have the items, prompt the user for which they'd like to bid on
-      inquirer
-        .prompt([
+      connection.query("SELECT * FROM products", function(err, res) {
+        if (err) throw err;
+      //prompt the user for which product they'd like to order more quantity
+        inquirer.prompt([
           {
             name: "choice",
             type: "list",
@@ -149,9 +129,9 @@ function productList() {
             message: "How much Inventory to order?",
             validate: function(value){if(value > 0){
               return true;
-            } else { console.log("  ....Input must be a number and larger than Zero");}
+              } else { console.log("  ....Input must be a number and larger than Zero");}
+            }
           }
-        }
         ])
         .then(function(answer) {
     
@@ -182,38 +162,44 @@ function productList() {
               ],
               function(error) {
                 if (error) throw err;
-              
                 console.log("Order placed successfully!\nYour Updated Quantity for " + chosenItem.product_name + " is..." + chosenItem.stock_quantity);
                 console.log("==========================================================");
                 menu();
               }
             );
-          } 
+            } 
+          });
         });
-    });
-  }
-
-  function newProducts(){
-    var query = "SELECT department_name FROM products";
-  connection.query(query, function(err, res) {
-    var depts = [];
-    for(var i = 0; i < res.length; i++){
-      depts.push(Object.values(res[i]).join());
     }
-    var deptsUnique = depts.filter(function(dep, j, arr){
-      return arr.indexOf(dep) === j; 
-    })
-    console.log(deptsUnique);
-    inquirer
-    .prompt([
+
+  //create new products
+  function newProducts(){
+    //query to get all current departments in database to use for validation
+    var query = "SELECT department_name FROM departments";
+    connection.query(query, function(err, res) {
+      var depts = [];
+      for(var i = 0; i < res.length; i++){
+        depts.push(Object.values(res[i]).join());
+      }
+      var deptsUnique = depts.filter(function(dep, j, arr){
+        return arr.indexOf(dep) === j; 
+      })
+      console.log(deptsUnique);
+      inquirer.prompt([
       {
         name: "product_name",
         type: "input",
         message: "Name of Product to be added?",
-        validate: function(value){if(isNaN(value)){
-          return true;
-        } else { console.log("....Input must be a string");}
-      }
+        validate: function(value){
+          if(isNaN(value)){
+            var letter = /^[A-Z]/.test(value);
+            if(letter === true){
+              return true;
+            } else {
+              console.log(".....First Letter must be Capitalized!");
+            }
+          } else { console.log("....Input must be a string");}
+        }
       },
       
       {
@@ -221,63 +207,70 @@ function productList() {
         type: "list",
         message: "Name of Department for Product?",
         choices: deptsUnique,
-        validate: function(value){if(isNaN(value)){
-          if(depts.includes(value, 0)){
-          console.log(value);
-          return true;
-        } else {
-console.log(" Department needs to be added by Supervisor");
-          }
-        } else { console.log("....Input must be a string");}
-      }
+        validate: function(value){
+          if(isNaN(value)){
+            if(depts.includes(value, 0)){
+              console.log(value);
+              return true;
+            } else {
+              console.log(" Department needs to be added by Supervisor");
+            }
+          } else { console.log("....Input must be a string");}
+        }
       },
       {
         name:"price",
         type: "input",
         message: "What is the Price to sell the Product at?",
-        validate: function(value){if(parseInt(value) > 0){
-          return true;
-        } else { console.log("....Input must be a number higher than Zero");}
-      }
+        validate: function(value){
+          if(parseInt(value) > 0){
+            return true;
+          } else { 
+            console.log("....Input must be a number higher than Zero");
+          }
+        }
       },
       {
         name: "stock_quantity",
         type: "input",
         message: "Quantity of Product to keep in inventory?",
-        validate: function(value){if(value > 0){
-          return true;
-        } else { console.log("....Quantity must be a number higher than Zero");}
-      }
+        validate: function(value){
+          if(value > 0){
+            return true;
+          } else { 
+            console.log("....Quantity must be a number higher than Zero");
+          }
+        }
       }
 
     ])
     .then(function(result) {
-console.log(result);
-inquirer.prompt([
-  {
-    name: "finalized",
-    type: "confirm",
-    message: "Is this the Product you wish to Add?"
-  }
-]).then(function(answer) {
-  if(answer.finalized === true){
-    updateProducts(result);
-  } else {
-    newProducts();
-  }
-})
-})
+      console.log(result);
+      inquirer.prompt([
+        {
+          name: "finalized",
+          type: "confirm",
+          message: "Is this the Product you wish to Add?"
+        }
+      ]).then(function(answer) {
+        if(answer.finalized === true){
+          updateProducts(result);
+        } else {
+          newProducts();
+        }
+      })
+    })
     })
   }
   
+  //update change into database 
   function updateProducts(result){
     var newName = result.product_name;
     var departmentName = result.department_name;
     var productPrice = result.price;
     var stockQuantity = result.stock_quantity;
 
-    connection.query(
-      "INSERT INTO products SET ?",  
+    connection.query("INSERT INTO products SET ?",  
        {
           product_name: newName,
           department_name: departmentName,

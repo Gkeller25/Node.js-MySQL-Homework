@@ -1,7 +1,6 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 
-
 var connection = mysql.createConnection({
     host: "localhost",
   
@@ -23,14 +22,12 @@ var connection = mysql.createConnection({
     productList();
   });
 
-  
+  //function will display the products that the user can choose to purchase
 function productList() {
-    // query the database for all items being auctioned
+    
     connection.query("SELECT * FROM products", function(err, res) {
       if (err) throw err;
-     
-  
-      // once you have the items, prompt the user for which they'd like to bid on
+    
       inquirer
         .prompt([
           {
@@ -46,7 +43,6 @@ function productList() {
               return choiceArray;
             },
             message: "What product would you like to buy?"
-          
           },
           {
             name: "qty",
@@ -54,24 +50,21 @@ function productList() {
             message: "How many would you like to buy?",
             validate: function(value){if(value > 0){
               return true;
-            } else { console.log("  ....Input must be a number and larger than Zero");}
-          }
+              } else { console.log("  ....Input must be a number and larger than Zero");}
+            }
         
           },
           {
             name: "finalized",
             type: "confirm",
             message: "Is this the Product you wish to Buy?"
-            
           }
         ])
-        .then(function(answer) {
-
+      .then(function(answer) {
         console.log("==========================================================");
-     if(answer.finalized === true)  { 
-          // get the information of the chosen item
+        if(answer.finalized === true)  { 
+        
           var chosenItem;
-         
           for (var i = 0; i < res.length; i++) {
             var listItem = 'ID#'+res[i].item_id+' - '+res[i].product_name+' - $'+res[i].price;
             if (listItem === answer.choice) {
@@ -79,14 +72,13 @@ function productList() {
             }
           }
    
-          //// determine if bid was high enough
+          //// determine if qty is high enough
           if (chosenItem.stock_quantity >= parseInt(answer.qty)) {
-          //  // bid was high enough, so update db, let the user know, and start over
-          var newQty = chosenItem.stock_quantity -= parseInt(answer.qty);
+            // bid was high enough, so update db, let the user know, and start over
+            var newQty = chosenItem.stock_quantity -= parseInt(answer.qty);
           
-          var dept = chosenItem.department_name;
-            connection.query(
-              "UPDATE products SET ? WHERE ?",
+            var dept = chosenItem.department_name;
+            connection.query("UPDATE products SET ? WHERE ?",
               [
                {
                   stock_quantity: newQty
@@ -106,8 +98,7 @@ function productList() {
                 
               }
             );
-          }
-          else {
+          } else {
             // bid wasn't high enough, so apologize and start over
             console.log("Insufficient quantity. Try again...");
             productList();
@@ -116,34 +107,32 @@ function productList() {
           
           productList();
         }
-        });
-
-
+      });
 
     });
   }
 
+  //get all the current departments in the database to use info from both tables to get data to update column product sales column
   function salesLog(cost, dept){
     connection.query("SELECT * FROM departments WHERE department_name = ?", [dept], function(err, res) {
       if (err) throw err;
-    var sales = res[0].product_sales;
+      var sales = res[0].product_sales;
     
-    var newSales = sales + cost;
-    connection.query(
-      "UPDATE departments SET ? WHERE ?",
-      [
-       {
-        product_sales: newSales
-        },
-        {
-         department_name: dept
-        }
-      ],
+      var newSales = sales + cost;
+      connection.query("UPDATE departments SET ? WHERE ?",
+        [
+         {
+          product_sales: newSales
+          },
+          {
+           department_name: dept
+          }
+        ],
       function(error) {
         if (error) throw error;  
-        
+
       }
-  );
-})
+      );
+    })
   }
   
