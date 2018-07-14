@@ -146,7 +146,7 @@ function inventoryCheck(){
           }
          
           //// determine if bid was high enough
-          if (chosenItem.stock_quantity >= parseInt(answer.qty)) {
+         // if (chosenItem.stock_quantity >= parseInt(answer.qty)) {
           //  // bid was high enough, so update db, let the user know, and start over
           var newQty = chosenItem.stock_quantity += parseInt(answer.qty);
          
@@ -167,7 +167,7 @@ function inventoryCheck(){
                 menu();
               }
             );
-            } 
+           // } 
           });
         });
     }
@@ -184,7 +184,7 @@ function inventoryCheck(){
       var deptsUnique = depts.filter(function(dep, j, arr){
         return arr.indexOf(dep) === j; 
       })
-      console.log(deptsUnique);
+      //console.log(deptsUnique);
       inquirer.prompt([
       {
         name: "product_name",
@@ -245,7 +245,7 @@ function inventoryCheck(){
 
     ])
     .then(function(result) {
-      console.log(result);
+     
       inquirer.prompt([
         {
           name: "finalized",

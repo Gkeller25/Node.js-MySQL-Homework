@@ -14,15 +14,22 @@ This Homework is a collection of Amazon like apps run from the Commandline and c
    * table
 
 ## App Overviews
+
+![Gif of CustomerApp](/images/customer.gif)
+
    * Customer App (bamazonCustomer.js)
        - View All Products available for sale
        - Purchase a Product.(App will check for store inventory before fulfilling order)
+
+![Gif of ManagerApp](/images/manager.gif)
 
    * Manager App (bamazonManager.js)
        - View all Products
        - View all Products with Low Inventory Levels
        - Order more a Designated Product
        - Add New Product to Store
+
+![Gif of SupervisorApp](/images/supervisor.gif)
 
    * Supervisor App (bamazonSupervisor.js)
        - View all Departments in Store alongwith their Product Sales

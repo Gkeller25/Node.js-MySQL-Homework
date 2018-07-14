@@ -61,7 +61,7 @@ function productList() {
           }
         ])
       .then(function(answer) {
-        console.log("==========================================================");
+        //console.log("==========================================================");
         if(answer.finalized === true)  { 
         
           var chosenItem;
